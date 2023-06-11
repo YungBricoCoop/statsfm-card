@@ -5,6 +5,16 @@ require 'vendor/autoload.php';
 use GuzzleHttp\Client;
 use Intervention\Image\ImageManagerStatic as Image;
 
+$client = new Client([
+	'headers' => [
+		'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
+		'Accept-Language' => 'en-US,en;q=0.9',
+		'Accept' => '*/*',
+		'Accept-Encoding' => 'gzip, deflate',
+	],
+	'verify' => false,
+]);
+
 $PARAMS = [
 	'username' => '',
 	'range' => 'lifetime',
@@ -20,7 +30,8 @@ $PARAMS = [
 	'gradient_stop' => '#000000',
 ];
 
-function handleRequest() {
+function handleRequest()
+{
 	header('Content-Type: image/svg+xml');
 
 	// parse query params and change default values
@@ -29,6 +40,8 @@ function handleRequest() {
 			$GLOBALS['PARAMS'][$key] = $_GET[$key];
 		}
 	}
+
+	echo createSvg();
 }
 
 function getRandomId()
@@ -88,6 +101,54 @@ function addImg($client, $url, $x, $y, $width, $height, $radius)
 function addText($text, $x, $y, $width, $color, $size, $anchor)
 {
 	return '<text x="' . $x . '" y="' . $y . '" width="' . $width . '" fill="' . $color . '" style="text-anchor: ' . $anchor . '; font-family: Arial; font-size: ' . $size . 'px;">' . $text . '</text>';
+}
+
+
+function createSvg()
+{
+	$client = $GLOBALS['client'];
+	$params = $GLOBALS['PARAMS'];
+
+	$username = $params['username'];
+	$type = $params['type'];
+	$range = $params['range'];
+	$limit = $params['limit'];
+
+	$url = "https://beta-api.stats.fm/api/v1/users/$username/top/$type?range=$range&limit=$limit";
+
+	$response = $client->get($url);
+	$top_artists = json_decode($response->getBody(), true)['items'];
+
+	$image_size = 80;
+	$start_x = ($params['width'] - ($image_size * $params['limit'] + $params['spacing'] * ($params['limit'] - 1))) / 2;
+	$start_y = ($params['height'] - $image_size) / 2;
+
+	$svg_content = '';
+	$svg_content .= addRect(0, 0, $params['width'], $params['height'], '', $params['rounded'], $params['gradient_start'], $params['gradient_stop']);
+
+	foreach ($top_artists as $i => $artist) {
+		$playedMs = 0;
+		if (isset($artist['playedMs'])) {
+			$playedMs = $artist['playedMs'];
+		}
+		$playedH = round($playedMs / 1000 / 60 / 60);
+		$local_y_offset = $i % 2 * $params['y_offset'];
+		$local_start_y = $start_y - $local_y_offset;
+		$local_start_x = $start_x + ($image_size + $params['spacing']) * $i;
+		$local_artist_text_y = $local_start_y - 10;
+		$local_h_text_y = $local_start_y + $image_size + 20;
+		$x_center = $start_x + ($image_size + $params['spacing']) * $i + $image_size / 2;
+
+		$art = $artist['artist'];
+		$image_url = $art['image'];
+
+		$svg_content .= addImg($client, $image_url, $local_start_x, $local_start_y, $image_size, $image_size, $params['i_rounded']);
+		$svg_content .= addText($art['name'], $x_center, $local_artist_text_y, $image_size, "white", 9, 'middle');
+		$svg_content .= addText($playedH . 'h', $x_center, $local_h_text_y, $image_size, "white", 7, 'middle');
+	}
+
+	$svg = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="' . $params['width'] . '" height="' . $params['height'] . '">' . $svg_content . '</svg>';
+	return $svg;
 }
 
 
