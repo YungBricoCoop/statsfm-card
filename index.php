@@ -5,6 +5,32 @@ require 'vendor/autoload.php';
 use GuzzleHttp\Client;
 use Intervention\Image\ImageManagerStatic as Image;
 
+$PARAMS = [
+	'username' => '',
+	'range' => 'lifetime',
+	'type' => 'artists',
+	'limit' => 5,
+	'width' => 600,
+	'height' => 140,
+	'spacing' => 20,
+	'y_offset' => 10,
+	'rounded' => 4,
+	'i_rounded' => 100,
+	'gradient_start' => '#0D1117',
+	'gradient_stop' => '#000000',
+];
+
+function handleRequest() {
+	header('Content-Type: image/svg+xml');
+
+	// parse query params and change default values
+	foreach ($GLOBALS['PARAMS'] as $key => $value) {
+		if (isset($_GET[$key])) {
+			$GLOBALS['PARAMS'][$key] = $_GET[$key];
+		}
+	}
+}
+
 function getRandomId()
 {
 	return substr(md5(rand()), 0, 12);
@@ -63,3 +89,6 @@ function addText($text, $x, $y, $width, $color, $size, $anchor)
 {
 	return '<text x="' . $x . '" y="' . $y . '" width="' . $width . '" fill="' . $color . '" style="text-anchor: ' . $anchor . '; font-family: Arial; font-size: ' . $size . 'px;">' . $text . '</text>';
 }
+
+
+handleRequest();
