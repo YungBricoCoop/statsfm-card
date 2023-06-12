@@ -1,0 +1,31 @@
+name: Backend
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: "[BACKEND] 🚀 Deploy"
+      uses: garygrossgarten/github-action-scp@v0.8.0
+      with:
+        local: "."
+        remote: "./sites/${{ secrets.BACKEND_SERVER_FOLDER }}"
+        host: ${{ secrets.BACKEND_SERVER_IP }}
+        username: ${{ secrets.BACKEND_SERVER_USER }}
+        password: ${{ secrets.BACKEND_SERVER_PASSWORD }}
+
+    - name: "[BACKEND] 📦 Install dependencies"
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.BACKEND_SERVER_IP }}
+        username: ${{ secrets.BACKEND_SERVER_USER }}
+        password: ${{ secrets.BACKEND_SERVER_PASSWORD }}
+        script: |
+          cd ./sites/${{ secrets.BACKEND_SERVER_FOLDER }}
+          composer install
