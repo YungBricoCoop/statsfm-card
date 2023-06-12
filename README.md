@@ -2,6 +2,9 @@
 
 Create **svg cards** to showcase your top Spotify artists, tracks, or albums on any website or README.
 
+
+<div style="text-align:center"><img src="https://card.elwan.ch/?username=elwan.mayencourt" /></div>
+
 Images are cached for 1 day to reduce load time by a significant amount.
 
 ![PHP](https://img.shields.io/badge/php-%23777BB4.svg?style=for-the-badge&logo=php&logoColor=white)
@@ -38,6 +41,19 @@ Customize your card further with additional parameters:
 
 ## 🖼️Examples
 
+### Default
+
+<div style="text-align:center"><img src="https://card.elwan.ch/?username=elwan.mayencourt" /></div>
+
+### Weeks, 4 items,  400x140 
+> type=artists&range=weeks&limit=4&width=400&height=140
+
+<div style="text-align:center"><img src="https://card.elwan.ch/?username=elwan.mayencourt&type=artists&range=weeks&limit=4&width=400&height=140" /></div>
+
+### Gradient, rounded 
+> type=artists&rounded=40&i_rounded=100&g_start=36E7FF&g_stop=3F5DFF
+
+<div style="text-align:center"><img src="https://card.elwan.ch/?username=elwan.mayencourt&type=artists&rounded=40&i_rounded=100&g_start=36E7FF&g_stop=3F5DFF" /></div>
 
 ## 🤝Contributing
 
