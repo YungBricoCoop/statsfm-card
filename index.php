@@ -30,9 +30,19 @@ $PARAMS = [
 	'gradient_stop' => '#000000',
 ];
 
+$CACHE_FOLDER = 'cache';
+$CACHE_TIME = 86400; // 1 day
+$CACHE_KEY = '';
+
 function handleRequest()
 {
-	header('Content-Type: image/svg+xml');
+	//header('Content-Type: image/svg+xml');
+	$GLOBALS['CACHE_KEY'] = getUrlHash();
+	$cache = getFromCache();
+	if ($cache) {
+		echo $cache;
+		return;
+	}
 
 	// parse query params and change default values
 	foreach ($GLOBALS['PARAMS'] as $key => $value) {
@@ -148,7 +158,49 @@ function createSvg()
 	}
 
 	$svg = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="' . $params['width'] . '" height="' . $params['height'] . '">' . $svg_content . '</svg>';
+
+	// save image in cache
+	$cache_file = 'cache/' . $GLOBALS['CACHE_KEY'] . '.svg';
+	file_put_contents($cache_file, $svg);
+
 	return $svg;
+}
+
+function getUrlHash()
+{
+	$url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+	$hash = md5($url);
+	return $hash;
+}
+
+function getFromCache()
+{
+	$file = basename($GLOBALS['CACHE_KEY']) . '.svg';
+	$cache_file = $GLOBALS['CACHE_FOLDER'] . '/' . $file;
+
+	// check if image in cache and is not older than the cache time
+	if (file_exists($cache_file) && (time() - filemtime($cache_file) < $GLOBALS['CACHE_TIME'])) {
+		return file_get_contents($cache_file);
+	}
+	return false;
+}
+
+function saveToCache($svg)
+{
+	// create cache directory if it doesn't exist
+	if (!is_dir($GLOBALS['CACHE_FOLDER'])) {
+		mkdir($GLOBALS['CACHE_FOLDER'], 0755, true);
+	}
+
+	// prevent directory traversal attacks even if normally this shouldn't be possible
+	$file = basename($GLOBALS['CACHE_KEY']) . '.svg';
+	$cache_file = $GLOBALS['CACHE_FOLDER'] . '/' . $file;
+
+	// prevent writing outside of cache directory
+	$real_path = realpath($GLOBALS['CACHE_FOLDER']);
+	if (strpos($cache_file, $real_path) === 0) {
+		file_put_contents($cache_file, $svg);
+	}
 }
 
 
