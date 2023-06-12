@@ -2,6 +2,7 @@
 
 define('CACHE_FOLDER', 'cache');
 define('CACHE_TIME', 86400); // 1 day
+define('MAX_CACHE_TIME', 604800); // 1 week
 define('DEFAULT_PARAMS', [
 	'username' => '',
 	'range' => 'lifetime',
