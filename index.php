@@ -21,13 +21,13 @@ $PARAMS = [
 	'type' => 'artists',
 	'limit' => 5,
 	'width' => 600,
-	'height' => 140,
+	'height' => 180,
 	'spacing' => 20,
 	'y_offset' => 10,
 	'rounded' => 4,
 	'i_rounded' => 100,
-	'gradient_start' => '#0D1117',
-	'gradient_stop' => '#000000',
+	'g_start' => '0D1117',
+	'g_stop' => '000000',
 ];
 
 $CACHE_FOLDER = 'cache';
@@ -65,7 +65,7 @@ function addRect($x, $y, $width, $height, $color, $radius, $gradientStart, $grad
 	$color = 'fill="' . $color . '"';
 	if ($gradientStart) {
 		$id = getRandomId();
-		$rect .= '<defs><linearGradient id="' . $id . '" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:' . $gradientStart . ';stop-opacity:1" /><stop offset="100%" style="stop-color:' . $gradientStop . ';stop-opacity:1" /></linearGradient></defs>';
+		$rect .= '<defs><linearGradient id="' . $id . '" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#' . $gradientStart . ';stop-opacity:1" /><stop offset="100%" style="stop-color:#' . $gradientStop . ';stop-opacity:1" /></linearGradient></defs>';
 		$color = 'fill="url(#' . $id . ')"';
 	}
 
@@ -133,8 +133,7 @@ function createSvg()
 	$start_x = ($params['width'] - ($image_size * $params['limit'] + $params['spacing'] * ($params['limit'] - 1))) / 2;
 	$start_y = ($params['height'] - $image_size) / 2;
 
-	$svg_content = '';
-	$svg_content .= addRect(0, 0, $params['width'], $params['height'], '', $params['rounded'], $params['gradient_start'], $params['gradient_stop']);
+	$svg_content = addRect(0, 0, $params['width'], $params['height'], '', $params['rounded'], $params['g_start'], $params['g_stop']);
 
 	foreach ($top_artists as $i => $artist) {
 		$playedMs = 0;
