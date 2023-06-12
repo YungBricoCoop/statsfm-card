@@ -108,9 +108,9 @@ function addImg($client, $url, $x, $y, $width, $height, $radius)
 	return '<image x="' . $x . '" y="' . $y . '" width="' . $width . '" height="' . $height . '" href="data:image/png;base64,' . $image_base64 . '" />';
 }
 
-function addText($text, $x, $y, $width, $color, $size, $anchor)
+function addText($text, $x, $y, $width, $color, $size, $weight, $anchor)
 {
-	return '<text x="' . $x . '" y="' . $y . '" width="' . $width . '" fill="' . $color . '" style="text-anchor: ' . $anchor . '; font-family: Arial; font-size: ' . $size . 'px;">' . $text . '</text>';
+	return '<text x="' . $x . '" y="' . $y . '" width="' . $width . '" fill="' . $color . '" style="text-anchor: ' . $anchor . '; font-family: Arial; font-size: ' . $size . 'px; font-weight: ' . $weight . ';">' . $text . '</text>';
 }
 
 
@@ -144,16 +144,16 @@ function createSvg()
 		$local_y_offset = $i % 2 * $params['y_offset'];
 		$local_start_y = $start_y - $local_y_offset;
 		$local_start_x = $start_x + ($image_size + $params['spacing']) * $i;
-		$local_artist_text_y = $local_start_y - 10;
-		$local_h_text_y = $local_start_y + $image_size + 20;
+		$local_artist_text_y = $local_start_y - 5;
+		$local_h_text_y = $local_start_y + $image_size + 12;
 		$x_center = $start_x + ($image_size + $params['spacing']) * $i + $image_size / 2;
 
 		$art = $artist['artist'];
 		$image_url = $art['image'];
 
 		$svg_content .= addImg($client, $image_url, $local_start_x, $local_start_y, $image_size, $image_size, $params['i_rounded']);
-		$svg_content .= addText($art['name'], $x_center, $local_artist_text_y, $image_size, "white", 9, 'middle');
-		$svg_content .= addText($playedH . 'h', $x_center, $local_h_text_y, $image_size, "white", 7, 'middle');
+		$svg_content .= addText($art['name'], $x_center, $local_artist_text_y, $image_size, "white", 9, 'normal', 'middle');
+		$svg_content .= addText($playedH . 'h', $x_center, $local_h_text_y, $image_size, "white", 9, 'bold', 'middle');
 	}
 
 	$svg = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="' . $params['width'] . '" height="' . $params['height'] . '">' . $svg_content . '</svg>';
