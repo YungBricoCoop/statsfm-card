@@ -1,6 +1,7 @@
 <?php
 
 require 'vendor/autoload.php';
+require 'constants.php';
 
 use GuzzleHttp\Client;
 use Intervention\Image\ImageManagerStatic as Image;
@@ -15,24 +16,9 @@ $client = new Client([
 	'verify' => false,
 ]);
 
-$PARAMS = [
-	'username' => '',
-	'range' => 'lifetime',
-	'type' => 'artists',
-	'limit' => 5,
-	'width' => 600,
-	'height' => 180,
-	'spacing' => 20,
-	'y_offset' => 10,
-	'rounded' => 4,
-	'i_rounded' => 100,
-	'g_start' => '0D1117',
-	'g_stop' => '000000',
-];
-
-$CACHE_FOLDER = 'cache';
-$CACHE_TIME = 86400; // 1 day
+$PARAMS = DEFAULT_PARAMS;
 $CACHE_KEY = '';
+
 
 function handleRequest()
 {
@@ -43,7 +29,6 @@ function handleRequest()
 		echo $cache;
 		return;
 	}
-
 	// parse query params and change default values
 	foreach ($GLOBALS['PARAMS'] as $key => $value) {
 		if (isset($_GET[$key])) {
@@ -113,7 +98,6 @@ function addText($text, $x, $y, $width, $color, $size, $weight, $anchor)
 	return '<text x="' . $x . '" y="' . $y . '" width="' . $width . '" fill="' . $color . '" style="text-anchor: ' . $anchor . '; font-family: Arial; font-size: ' . $size . 'px; font-weight: ' . $weight . ';">' . $text . '</text>';
 }
 
-
 function createSvg()
 {
 	$client = $GLOBALS['client'];
@@ -175,10 +159,10 @@ function getUrlHash()
 function getFromCache()
 {
 	$file = basename($GLOBALS['CACHE_KEY']) . '.svg';
-	$cache_file = $GLOBALS['CACHE_FOLDER'] . '/' . $file;
+	$cache_file = CACHE_FOLDER . '/' . $file;
 
 	// check if image in cache and is not older than the cache time
-	if (file_exists($cache_file) && (time() - filemtime($cache_file) < $GLOBALS['CACHE_TIME'])) {
+	if (file_exists($cache_file) && (time() - filemtime($cache_file) <CACHE_TIME)) {
 		return file_get_contents($cache_file);
 	}
 	return false;
@@ -187,16 +171,16 @@ function getFromCache()
 function saveToCache($svg)
 {
 	// create cache directory if it doesn't exist
-	if (!is_dir($GLOBALS['CACHE_FOLDER'])) {
-		mkdir($GLOBALS['CACHE_FOLDER'], 0755, true);
+	if (!is_dir(CACHE_FOLDER)) {
+		mkdir(CACHE_FOLDER, 0755, true);
 	}
 
 	// prevent directory traversal attacks even if normally this shouldn't be possible
 	$file = basename($GLOBALS['CACHE_KEY']) . '.svg';
-	$cache_file = $GLOBALS['CACHE_FOLDER'] . '/' . $file;
+	$cache_file = CACHE_FOLDER . '/' . $file;
 
 	// prevent writing outside of cache directory
-	$real_path = realpath($GLOBALS['CACHE_FOLDER']);
+	$real_path = realpath(CACHE_FOLDER);
 	if (strpos($cache_file, $real_path) === 0) {
 		file_put_contents($cache_file, $svg);
 	}
