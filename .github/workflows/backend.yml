@@ -12,10 +12,10 @@ jobs:
       uses: actions/checkout@v3
 
     - name: "[BACKEND] 🚀 Deploy"
-      uses: garygrossgarten/github-action-scp@v0.8.0
+      uses: appleboy/scp-action@v0.1.4
       with:
-        local: "."
-        remote: "./sites/${{ secrets.BACKEND_SERVER_FOLDER }}"
+        source: "./*, !./.git/**, !./.github"
+        target: "./sites/${{ secrets.BACKEND_SERVER_FOLDER }}"
         host: ${{ secrets.BACKEND_SERVER_IP }}
         username: ${{ secrets.BACKEND_SERVER_USER }}
         password: ${{ secrets.BACKEND_SERVER_PASSWORD }}
