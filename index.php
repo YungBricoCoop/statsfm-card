@@ -118,8 +118,9 @@ function createSvg()
 	$start_y = ($params['height'] - $image_size) / 2;
 
 	$svg_content = addRect(0, 0, $params['width'], $params['height'], '', $params['rounded'], $params['g_start'], $params['g_stop']);
-
+	$index = 0;
 	foreach ($top_artists as $i => $artist) {
+		if ($index == $params['limit']) break;
 		$playedMs = 0;
 		if (isset($artist['playedMs'])) {
 			$playedMs = $artist['playedMs'];
@@ -138,6 +139,7 @@ function createSvg()
 		$svg_content .= addImg($client, $image_url, $local_start_x, $local_start_y, $image_size, $image_size, $params['i_rounded']);
 		$svg_content .= addText($art['name'], $x_center, $local_artist_text_y, $image_size, "white", 9, 'normal', 'middle');
 		$svg_content .= addText($playedH . 'h', $x_center, $local_h_text_y, $image_size, "white", 9, 'bold', 'middle');
+		$index++;
 	}
 
 	$svg = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="' . $params['width'] . '" height="' . $params['height'] . '">' . $svg_content . '</svg>';
