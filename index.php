@@ -22,7 +22,7 @@ $CACHE_KEY = '';
 
 function handleRequest()
 {
-	//header('Content-Type: image/svg+xml');
+	header('Content-Type: image/svg+xml');
 	$GLOBALS['CACHE_KEY'] = getUrlHash();
 	$cache = getFromCache();
 	if ($cache) {
