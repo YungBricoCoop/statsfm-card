@@ -129,38 +129,37 @@ function createSvg()
 		$local_artist_text_y = $local_start_y - 5;
 		$local_h_text_y = $local_start_y + $image_size + 12;
 		$x_center = $start_x + ($image_size + $params['spacing']) * $i + $image_size / 2;
-		
+
 		$name = '';
 		$data = 0;
-		
-		if($type == 'artists') {
+
+		if ($type == 'artists') {
 			$name = $top['artist']['name'];
 			$image_url = $top['artist']['image'] ?? NOT_FOUND_IMAGE;
-		}
-		else if ($type == 'albums') {
+		} else if ($type == 'albums') {
 			$name = $top['album']['name'];
 			$image_url = $top['album']['image'] ?? NOT_FOUND_IMAGE;
-		}
-		else if ($type == 'tracks') {
+		} else if ($type == 'tracks') {
 			$name = $top['track']['albums'][0]['name'];
 			$image_url = $top['track']['albums'][0]['image'] ?? NOT_FOUND_IMAGE;
 		}
-		
+
 		if (isset($top['playedMs']) && $display == 'hours') {
 			$data = $top['playedMs'];
 			$data = round($data / 1000 / 60 / 60);
 			$data = number_format($data, 0, '.', ' ');
-			$data.= ' h';
-		}
-		else if (isset($top['streams']) && $display == 'streams') {
+			$data .= ' h';
+		} else if (isset($top['streams']) && $display == 'streams') {
 			$data = $top['streams'];
 			$data = number_format($data, 0, '.', ' ');
-			$data.= ' s';
+			$data .= ' s';
 		}
 
 		$svg_content .= addImg($client, $image_url, $local_start_x, $local_start_y, $image_size, $image_size, $params['i_rounded']);
 		$svg_content .= addText($name, $x_center, $local_artist_text_y, $image_size, "white", 9, 'normal', 'middle');
-		$svg_content .= addText($data, $x_center, $local_h_text_y, $image_size, "white", 9, 'bold', 'middle');
+		if ($data) {
+			$svg_content .= addText($data, $x_center, $local_h_text_y, $image_size, "white", 9, 'bold', 'middle');
+		}
 		$index++;
 	}
 
