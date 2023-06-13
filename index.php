@@ -22,7 +22,7 @@ $CACHE_KEY = '';
 
 function handleRequest()
 {
-	header('Content-Type: image/svg+xml');
+	//header('Content-Type: image/svg+xml');
 	$GLOBALS['CACHE_KEY'] = getUrlHash();
 	$cache = getFromCache();
 	if ($cache) {
@@ -106,12 +106,13 @@ function createSvg()
 	$username = $params['username'];
 	$type = $params['type'];
 	$range = $params['range'];
+	$display = $params['display'];
 	$limit = $params['limit'];
 
 	$url = "https://beta-api.stats.fm/api/v1/users/$username/top/$type?range=$range&limit=$limit";
 
 	$response = $client->get($url);
-	$top_artists = json_decode($response->getBody(), true)['items'];
+	$top_elements = json_decode($response->getBody(), true)['items'];
 
 	$image_size = 80;
 	$start_x = ($params['width'] - ($image_size * $params['limit'] + $params['spacing'] * ($params['limit'] - 1))) / 2;
@@ -119,26 +120,47 @@ function createSvg()
 
 	$svg_content = addRect(0, 0, $params['width'], $params['height'], '', $params['rounded'], $params['g_start'], $params['g_stop']);
 	$index = 0;
-	foreach ($top_artists as $i => $artist) {
+	foreach ($top_elements as $i => $top) {
 		if ($index == $params['limit']) break;
-		$playedMs = 0;
-		if (isset($artist['playedMs'])) {
-			$playedMs = $artist['playedMs'];
-		}
-		$playedH = round($playedMs / 1000 / 60 / 60);
+
 		$local_y_offset = $i % 2 * $params['y_offset'];
 		$local_start_y = $start_y - $local_y_offset;
 		$local_start_x = $start_x + ($image_size + $params['spacing']) * $i;
 		$local_artist_text_y = $local_start_y - 5;
 		$local_h_text_y = $local_start_y + $image_size + 12;
 		$x_center = $start_x + ($image_size + $params['spacing']) * $i + $image_size / 2;
-
-		$art = $artist['artist'];
-		$image_url = $art['image'];
+		
+		$name = '';
+		$data = 0;
+		
+		if($type == 'artists') {
+			$name = $top['artist']['name'];
+			$image_url = $top['artist']['image'] ?? NOT_FOUND_IMAGE;
+		}
+		else if ($type == 'albums') {
+			$name = $top['album']['name'];
+			$image_url = $top['album']['image'] ?? NOT_FOUND_IMAGE;
+		}
+		else if ($type == 'tracks') {
+			$name = $top['track']['albums'][0]['name'];
+			$image_url = $top['track']['albums'][0]['image'] ?? NOT_FOUND_IMAGE;
+		}
+		
+		if (isset($top['playedMs']) && $display == 'hours') {
+			$data = $top['playedMs'];
+			$data = round($data / 1000 / 60 / 60);
+			$data = number_format($data, 0, '.', ' ');
+			$data.= ' h';
+		}
+		else if (isset($top['streams']) && $display == 'streams') {
+			$data = $top['streams'];
+			$data = number_format($data, 0, '.', ' ');
+			$data.= ' s';
+		}
 
 		$svg_content .= addImg($client, $image_url, $local_start_x, $local_start_y, $image_size, $image_size, $params['i_rounded']);
-		$svg_content .= addText($art['name'], $x_center, $local_artist_text_y, $image_size, "white", 9, 'normal', 'middle');
-		$svg_content .= addText($playedH . 'h', $x_center, $local_h_text_y, $image_size, "white", 9, 'bold', 'middle');
+		$svg_content .= addText($name, $x_center, $local_artist_text_y, $image_size, "white", 9, 'normal', 'middle');
+		$svg_content .= addText($data, $x_center, $local_h_text_y, $image_size, "white", 9, 'bold', 'middle');
 		$index++;
 	}
 
@@ -164,7 +186,7 @@ function getFromCache()
 	$cache_file = CACHE_FOLDER . '/' . $file;
 
 	// check if image in cache and is not older than the cache time
-	if (file_exists($cache_file) && (time() - filemtime($cache_file) <CACHE_TIME)) {
+	if (file_exists($cache_file) && (time() - filemtime($cache_file) < CACHE_TIME)) {
 		return file_get_contents($cache_file);
 	}
 	return false;

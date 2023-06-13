@@ -7,6 +7,7 @@ define('DEFAULT_PARAMS', [
 	'username' => '',
 	'range' => 'lifetime',
 	'type' => 'artists',
+	'display' => 'hours',
 	'limit' => 5,
 	'width' => 580,
 	'height' => 180,
@@ -17,3 +18,4 @@ define('DEFAULT_PARAMS', [
 	'g_start' => '0D1117',
 	'g_stop' => '000000',
 ]);
+DEFINE('NOT_FOUND_IMAGE', 'https://upload.wikimedia.org/wikipedia/commons/4/49/A_black_image.jpg');
