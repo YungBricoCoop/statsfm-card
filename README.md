@@ -68,7 +68,17 @@ Customize your card further with additional parameters:
 
 <div style="text-align:center"><img src="https://card.elwan.ch/?username=elwan.mayencourt" /></div>
 
-### Weeks, 4 items,  400x140 
+### Tracks, months, streams
+> type=tracks&range=months&display=streams
+
+<div style="text-align:center"><img src="https://card.elwan.ch/?username=elwan.mayencourt&type=tracks&range=months&display=streams" /></div>
+
+### Albums, spacing, no offset, 4 items
+> type=albums&spacing=50&y_offset=20&limit=4
+
+<div style="text-align:center"><img src="https://card.elwan.ch/?username=elwan.mayencourt&type=albums&spacing=50&y_offset=20&limit=4" /></div>
+
+### Weeks, 4 items, 400x140 
 > type=artists&range=weeks&limit=4&width=400&height=140
 
 <div style="text-align:center"><img src="https://card.elwan.ch/?username=elwan.mayencourt&type=artists&range=weeks&limit=4&width=400&height=140" /></div>
