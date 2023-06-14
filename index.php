@@ -112,7 +112,17 @@ function createSvg()
 	$url = "https://beta-api.stats.fm/api/v1/users/$username/top/$type?range=$range&limit=$limit";
 
 	$response = $client->get($url);
-	$top_elements = json_decode($response->getBody(), true)['items'];
+	if ($response->getStatusCode() != 200 || !$response->getBody()) {
+		echo createErrorSvg("[500] Error fetching data from API");
+		return;
+	}
+	$top_elements = json_decode($response->getBody(), true);
+	$top_elements = $top_elements['items'] ?? [];
+
+	if (count($top_elements) == 0) {
+		echo createErrorSvg("[204] No data found");
+		return;
+	}
 
 	$image_size = 80;
 	$start_x = ($params['width'] - ($image_size * $params['limit'] + $params['spacing'] * ($params['limit'] - 1))) / 2;
@@ -130,19 +140,10 @@ function createSvg()
 		$local_h_text_y = $local_start_y + $image_size + 12;
 		$x_center = $start_x + ($image_size + $params['spacing']) * $i + $image_size / 2;
 
-		$name = '';
+		$singular = substr($type, 0, -1);
+		$name = $top[$singular]['name'];
+		$image_url = $top[$singular]['image'] ?? $top['track']['albums'][0]['image'] ?? NOT_FOUND_IMAGE;
 		$data = 0;
-
-		if ($type == 'artists') {
-			$name = $top['artist']['name'];
-			$image_url = $top['artist']['image'] ?? NOT_FOUND_IMAGE;
-		} else if ($type == 'albums') {
-			$name = $top['album']['name'];
-			$image_url = $top['album']['image'] ?? NOT_FOUND_IMAGE;
-		} else if ($type == 'tracks') {
-			$name = $top['track']['albums'][0]['name'];
-			$image_url = $top['track']['albums'][0]['image'] ?? NOT_FOUND_IMAGE;
-		}
 
 		if (isset($top['playedMs']) && $display == 'hours') {
 			$data = $top['playedMs'];
@@ -169,6 +170,14 @@ function createSvg()
 	$cache_file = 'cache/' . $GLOBALS['CACHE_KEY'] . '.svg';
 	file_put_contents($cache_file, $svg);
 
+	return $svg;
+}
+
+function createErrorSvg ($error) {
+	$params = $GLOBALS['PARAMS'];
+	$svg_content = addRect(0, 0, $params['width'], $params['height'], '', $params['rounded'], $params['g_start'], $params['g_stop']);
+	$svg_content .= addText($error, $params['width'] / 2, $params['height'] / 2, $params['width'], 'white', 12, 'bold', 'middle');
+	$svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' . $params['width'] . '" height="' . $params['height'] . '">' . $svg_content . '</svg>';
 	return $svg;
 }
 
