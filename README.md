@@ -9,6 +9,29 @@ Images are cached for 1 day to reduce load time by a significant amount.
 
 ![PHP](https://img.shields.io/badge/php-%23777BB4.svg?style=for-the-badge&logo=php&logoColor=white)
 
+## 🌐 Services
+
+This project is based on the [stats.fm](https://beta-api.stats.fm/api/v1) API. 
+
+Depending if your **stats.fm** account is **free** or **premium**, you will have different features available.
+
+| Account | Top Artists | Top Tracks | Top Albums | Msplayed | Streams | Max Items |
+|---------|-------------|------------|------------|----------|---------|-----------|
+| FREE    | ✅           | ✅          | ❌          | ❌        | ❌       | 50        |
+| PREMIUM | ✅           | ✅          | ✅          | ✅        | ✅       | 99+       |
+
+
+### How to find you username ? 
+1. Login to [stats.fm](https://stats.fm/) with your Spotify account
+2. Open the network tab of your browser
+3. Refresh the page
+4. Find any request to the API, and retrieve the username from the url
+
+
+
+
+
+
 ## 🏡 Host 
 
 Host the code on any server that **support php** and then install the package using **composer** : 
