@@ -44,10 +44,34 @@ function getRandomId()
 	return substr(md5(rand()), 0, 12);
 }
 
+function validate_and_escape($type, $value, $default, $flag = ENT_QUOTES)
+{
+	if ($type === 'string') {
+		if (!is_string($value)) {
+			return $default;
+		}
+		//INFO: This is a workaround to display '&' in the SVG, because otherwise the svg generates an error.
+		$value = str_replace('&', '＆', $value);
+		$value = htmlspecialchars($value, $flag, 'UTF-8');
+		return $value;
+	}
+
+	if ($type === 'int') {
+		if (!is_numeric($value)) {
+			return $default;
+		}
+
+		return intval($value);
+	}
+	return $default;
+}
+
+
 function addRect($x, $y, $width, $height, $color, $radius, $gradientStart, $gradientStop)
 {
 	$rect = '';
 	$color = 'fill="' . $color . '"';
+
 	if ($gradientStart) {
 		$id = getRandomId();
 		$rect .= '<defs><linearGradient id="' . $id . '" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#' . $gradientStart . ';stop-opacity:1" /><stop offset="100%" style="stop-color:#' . $gradientStop . ';stop-opacity:1" /></linearGradient></defs>';
@@ -107,7 +131,17 @@ function createSvg()
 	$type = $params['type'];
 	$range = $params['range'];
 	$display = $params['display'];
-	$limit = $params['limit'];
+
+	// validate and escape
+	$width = validate_and_escape('int', $params['width'], 0);
+	$height = validate_and_escape('int', $params['height'], 0);
+	$limit = validate_and_escape('int', $params['limit'], 5);
+	$spacing = validate_and_escape('int', $params['spacing'], 0);
+	$y_offset = validate_and_escape('int', $params['y_offset'], 0);
+	$rounded = validate_and_escape('int', $params['rounded'], 0);
+	$i_rounded = validate_and_escape('int', $params['i_rounded'], 0);
+	$g_start = validate_and_escape('string', $params['g_start'], '');
+	$g_stop = validate_and_escape('string', $params['g_stop'], '');
 
 	$url = "https://beta-api.stats.fm/api/v1/users/$username/top/$type?range=$range&limit=$limit";
 
@@ -125,23 +159,25 @@ function createSvg()
 	}
 
 	$image_size = 80;
-	$start_x = ($params['width'] - ($image_size * $params['limit'] + $params['spacing'] * ($params['limit'] - 1))) / 2;
-	$start_y = ($params['height'] - $image_size) / 2;
 
-	$svg_content = addRect(0, 0, $params['width'], $params['height'], '', $params['rounded'], $params['g_start'], $params['g_stop']);
+
+	$start_x = ($width - ($image_size * $limit + $spacing * ($limit - 1))) / 2;
+	$start_y = ($height - $image_size) / 2;
+
+	$svg_content = addRect(0, 0, $width, $height, '', $rounded, $g_start, $g_stop);
 	$index = 0;
 	foreach ($top_elements as $i => $top) {
-		if ($index == $params['limit']) break;
+		if ($index == $limit) break;
 
-		$local_y_offset = $i % 2 * $params['y_offset'];
+		$local_y_offset = $i % 2 * $y_offset;
 		$local_start_y = $start_y - $local_y_offset;
-		$local_start_x = $start_x + ($image_size + $params['spacing']) * $i;
+		$local_start_x = $start_x + ($image_size + $spacing) * $i;
 		$local_artist_text_y = $local_start_y - 5;
 		$local_h_text_y = $local_start_y + $image_size + 12;
-		$x_center = $start_x + ($image_size + $params['spacing']) * $i + $image_size / 2;
+		$x_center = $start_x + ($image_size + $spacing) * $i + $image_size / 2;
 
 		$singular = substr($type, 0, -1);
-		$name = $top[$singular]['name'];
+		$name = validate_and_escape("string", $top[$singular]['name'], '', ENT_COMPAT);
 		$image_url = $top[$singular]['image'] ?? $top['track']['albums'][0]['image'] ?? NOT_FOUND_IMAGE;
 		$data = 0;
 
@@ -156,7 +192,7 @@ function createSvg()
 			$data .= ' s';
 		}
 
-		$svg_content .= addImg($client, $image_url, $local_start_x, $local_start_y, $image_size, $image_size, $params['i_rounded']);
+		$svg_content .= addImg($client, $image_url, $local_start_x, $local_start_y, $image_size, $image_size, $i_rounded);
 		$svg_content .= addText($name, $x_center, $local_artist_text_y, $image_size, "white", 9, 'normal', 'middle');
 		if ($data) {
 			$svg_content .= addText($data, $x_center, $local_h_text_y, $image_size, "white", 9, 'bold', 'middle');
@@ -164,7 +200,8 @@ function createSvg()
 		$index++;
 	}
 
-	$svg = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="' . $params['width'] . '" height="' . $params['height'] . '">' . $svg_content . '</svg>';
+
+	$svg = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="' . $width . '" height="' . $height . '">' . $svg_content . '</svg>';
 
 	// save image in cache
 	$cache_file = 'cache/' . $GLOBALS['CACHE_KEY'] . '.svg';
@@ -173,11 +210,20 @@ function createSvg()
 	return $svg;
 }
 
-function createErrorSvg ($error) {
+function createErrorSvg($error)
+{
 	$params = $GLOBALS['PARAMS'];
-	$svg_content = addRect(0, 0, $params['width'], $params['height'], '', $params['rounded'], $params['g_start'], $params['g_stop']);
-	$svg_content .= addText($error, $params['width'] / 2, $params['height'] / 2, $params['width'], 'white', 12, 'bold', 'middle');
-	$svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' . $params['width'] . '" height="' . $params['height'] . '">' . $svg_content . '</svg>';
+
+	// validate params
+	$width = validate_and_escape('int', $params['width'], 0);
+	$height = validate_and_escape('int', $params['height'], 0);
+	$rounded = validate_and_escape('int', $params['rounded'], 0);
+	$g_start = validate_and_escape('string', $params['g_start'], '');
+	$g_stop = validate_and_escape('string', $params['g_stop'], '');
+
+	$svg_content = addRect(0, 0, $width, $height, '', $rounded, $g_start, $g_stop);
+	$svg_content .= addText($error, $width / 2, $height / 2, $width, 'white', 12, 'bold', 'middle');
+	$svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' . $width . '" height="' . $height . '">' . $svg_content . '</svg>';
 	return $svg;
 }
 
