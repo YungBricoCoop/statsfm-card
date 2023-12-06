@@ -19,7 +19,6 @@ $client = new Client([
 $PARAMS = DEFAULT_PARAMS;
 $CACHE_KEY = '';
 
-
 function handleRequest()
 {
 	header('Content-Type: image/svg+xml');
@@ -82,39 +81,45 @@ function addRect($x, $y, $width, $height, $color, $radius, $gradientStart, $grad
 	return $rect;
 }
 
+
 function addImg($client, $url, $x, $y, $width, $height, $radius)
 {
-	$response = $client->get($url);
-	$image_data = $response->getBody();
+	try {
+		$response = $client->get($url);
+		$image_data = (string) $response->getBody();
 
-	$img = Image::make($image_data);
+		$img = Image::make($image_data);
 
-	$aspect_ratio = $img->width() / $img->height();
+		$aspect_ratio = $img->width() / $img->height();
+		if ($aspect_ratio != 1) {
+			$smaller_side = min($img->width(), $img->height());
 
-	if ($aspect_ratio != 1) {
-		$smaller_side = $img->width() < $img->height() ? $img->width() : $img->height();
-
-		if ($img->width() < $img->height()) {
-			$img->resize($smaller_side, null, function ($constraint) {
-				$constraint->aspectRatio();
-			});
-		} else {
-			$img->resize(null, $smaller_side, function ($constraint) {
-				$constraint->aspectRatio();
-			});
+			if ($img->width() < $img->height()) {
+				$img->resize($smaller_side, null, function ($constraint) {
+					$constraint->aspectRatio();
+				});
+			} else {
+				$img->resize(null, $smaller_side, function ($constraint) {
+					$constraint->aspectRatio();
+				});
+			}
+			$img->crop($smaller_side, $smaller_side);
 		}
-		$img->crop($smaller_side, $smaller_side);
+
+		$image_base64 = base64_encode($img->encode('png'));
+
+		if ($radius) {
+			$id = getRandomId();
+			$mask = '<defs><mask id="' . $id . '"><rect x="' . $x . '" y="' . $y . '" width="' . $width . '" height="' . $height . '" fill="white" rx="' . $radius . '" ry="' . $radius . '" /></mask></defs>';
+			return $mask . '<image x="' . $x . '" y="' . $y . '" width="' . $width . '" height="' . $height . '" href="data:image/png;base64,' . $image_base64 . '" mask="url(#' . $id . ')" />';
+		}
+
+		return '<image x="' . $x . '" y="' . $y . '" width="' . $width . '" height="' . $height . '" href="data:image/png;base64,' . $image_base64 . '" />';
+	} catch (\Intervention\Image\Exception\NotReadableException $e) {
+		echo 'Image Read Error: ', $e->getMessage();
+	} catch (\Exception $e) {
+		echo 'General Error: ', $e->getMessage();
 	}
-
-	$image_base64 = base64_encode($img->encode('png'));
-
-	if ($radius) {
-		$id = getRandomId();
-		$mask = '<defs><mask id="' . $id . '"><rect x="' . $x . '" y="' . $y . '" width="' . $width . '" height="' . $height . '" fill="white" rx="' . $radius . '" ry="' . $radius . '" /></mask></defs>';
-		return $mask . '<image x="' . $x . '" y="' . $y . '" width="' . $width . '" height="' . $height . '" href="data:image/png;base64,' . $image_base64 . '" mask="url(#' . $id . ')" />';
-	}
-
-	return '<image x="' . $x . '" y="' . $y . '" width="' . $width . '" height="' . $height . '" href="data:image/png;base64,' . $image_base64 . '" />';
 }
 
 function addText($text, $x, $y, $width, $color, $size, $weight, $anchor)

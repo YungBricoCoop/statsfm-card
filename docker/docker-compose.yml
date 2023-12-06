@@ -1,0 +1,14 @@
+version: "3.8"
+
+services:
+    php:
+        build: 
+            context: ../
+            dockerfile: docker/Dockerfile
+        ports:
+            - "2812:80"
+        volumes:
+            - cache:/var/www/html/cache
+
+volumes:
+    cache:
