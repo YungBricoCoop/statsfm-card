@@ -1,14 +1,17 @@
 FROM php:8.2-apache
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update \
+	&& apt-get install -y --no-install-recommends \
 	libfreetype6-dev \
 	libjpeg62-turbo-dev \
 	libpng-dev \
 	zip \
 	unzip \
 	git \
+	cron \
 	&& docker-php-ext-configure gd --with-freetype --with-jpeg \
-	&& docker-php-ext-install -j$(nproc) gd
+	&& docker-php-ext-install -j$(nproc) gd \
+	&& apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /var/www/html/cache /var/www/html/utils
 COPY index.php /var/www/html/index.php
@@ -28,5 +31,8 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www/html
 
 RUN composer install
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"] 
+RUN echo "0 0 * * 0 www-data php /var/www/html/utils/clean.php >> /var/log/cron.log 2>&1" | crontab -u www-data -
 
 EXPOSE 80
