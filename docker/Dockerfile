@@ -33,7 +33,7 @@ WORKDIR /var/www/html
 
 RUN composer install
  
-RUN echo "0 0 * * 0  root /usr/local/bin/php var/www/html/clean.php >> /var/log/cron.log 2>&1" >> /etc/crontab
+RUN echo "0 0 * * 0  root /usr/local/bin/php /var/www/html/clean.php >> /var/log/cron.log 2>&1" >> /etc/crontab
 
 EXPOSE 80
 
