@@ -17,9 +17,10 @@ RUN mkdir -p /var/www/html/cache /var/www/html/utils
 COPY index.php /var/www/html/index.php
 COPY clean.php /var/www/html/utils/clean.php
 COPY .htaccess /var/www/html/.htaccess
-COPY constants.php /var/www/html/constants.php
+COPY constants.php /var/www/html/utils/constants.php
 COPY composer.json /var/www/html/composer.json
 COPY docker/apache.conf  /etc/apache2/conf-available/apache.conf
+RUN touch /var/log/cron.log
 
 RUN chown -R www-data:www-data /var/www/html/cache && \
 	chmod -R 775 /var/www/html/cache
@@ -31,8 +32,9 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www/html
 
 RUN composer install
-
-SHELL ["/bin/bash", "-o", "pipefail", "-c"] 
-RUN echo "0 0 * * 0 www-data php /var/www/html/utils/clean.php >> /var/log/cron.log 2>&1" | crontab -u www-data -
+ 
+RUN echo "0 0 * * 0  root /usr/local/bin/php var/www/html/utils/clean.php >> /var/log/cron.log 2>&1" >> /etc/crontab
 
 EXPOSE 80
+
+CMD service cron start && /usr/local/bin/apache2-foreground
