@@ -13,7 +13,7 @@ RUN apt-get update \
 	&& docker-php-ext-install -j$(nproc) gd \
 	&& apt-get clean && rm -rf /var/lib/apt/lists/*
 
-RUN mkdir -p /var/www/html/cache /var/www/html/utils
+RUN mkdir -p /var/www/html/cache
 COPY index.php /var/www/html/index.php
 COPY clean.php /var/www/html/clean.php
 COPY .htaccess /var/www/html/.htaccess
