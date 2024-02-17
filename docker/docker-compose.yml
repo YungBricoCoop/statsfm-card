@@ -5,6 +5,8 @@ services:
         build: 
             context: ../
             dockerfile: docker/Dockerfile
+        container_name: statsfm-php
+        restart: unless-stopped
         ports:
             - "2812:80"
         volumes:
